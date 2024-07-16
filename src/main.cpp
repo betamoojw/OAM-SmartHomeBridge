@@ -1,9 +1,18 @@
 #include "OpenKNX.h"
-#include "Logic.h"
-#include "hardware.h"
-//#include "NetworkModule.h"
-#include "SmartHomeBridgeModule.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "WLANModule.h"
 #include "OTAUpdateModule.h"
+#endif
+#ifdef NET_ModuleVersion
+#include "NetworkModule.h"
+#endif
+#ifdef ARDUINO_ARCH_RP2040
+#include "UsbExchangeModule.h"
+#include "FileTransferModule.h"
+#endif
+#include "Logic.h"
+#include "SmartHomeBridgeModule.h"
+
 
 #if PROG_LED_PIN2
 #ifndef PROG_LED_PIN2_ACTIVE_ON
@@ -74,11 +83,24 @@ void setup()
     knx.setProgLedOffCallback(progLedOff);
     knx.setProgLedOnCallback(progLedOn);
 #endif
+#ifdef WLAN_WifiSSID    
+    openknx.addModule(1, openknxWLANModule);
+#endif
+#ifdef NET_ModuleVersion
+    openknx.addModule(1, openknxNetwork);
+#endif    
+    openknx.addModule(2, openknxLogic);
+ //   openknx.addModule(3, openknxInternetWeatherModule);
+#ifdef ARDUINO_ARCH_ESP32    
+    openknx.addModule(4, openknxOTAUpdateModule);
 
-    openknx.addModule(1, openknxLogic);
-    openknx.addModule(2, openknxSmartHomeBridgeModule);
-    openknx.addModule(3, openknxOTAUpdateModule);
-   // openknx.addModule(4, openknxNetwork);
+#endif
+#ifdef ARDUINO_ARCH_RP2040
+    openknx.addModule(5, openknxUsbExchangeModule);
+    openknx.addModule(6, openknxFileTransferModule);
+#endif
+    openknx.addModule(7, openknxSmartHomeBridgeModule);
+    openknx.setup();
 
     KNX_SERIAL.setRxBufferSize(1024);
     openknx.setup();

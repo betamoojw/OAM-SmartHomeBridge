@@ -3,7 +3,6 @@
 <KNX xmlns="http://knx.org/xml/project/20" xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" >
  
   
-  <!-- DEBUG 
   <op:ETS
     OpenKnxId="0xAE"
     ApplicationNumber="0x29" 
@@ -14,10 +13,11 @@
     BusCurrent="10"
     BuildSuffix="-Debug"
     BuildSuffixText=" (Debug)"
-    OrderNumber="MGKnxBRI" />-->
+    OrderNumber="MGKnxBRI" />
 
   <!-- Release -->
-  <op:ETS
+<!-- 
+    <op:ETS
     OpenKnxId="0xAE"
     ApplicationNumber="0x2A" 
     ApplicationVersion="9"
@@ -27,21 +27,36 @@
     BusCurrent="10"
     BuildSuffix=""
     BuildSuffixText=""
-    OrderNumber="MGKnxBRI" />  
+    OrderNumber="MGKnxBRI" />   -->
     
   <op:define prefix="BASE" ModuleType="10"
     share="../lib/OGM-Common/src/Common.share.xml" />
 
+  <!--
   <op:config name="%NET_WifiConfig%" value="1" /> 
   <op:define prefix="NET" ModuleType="11" 
     share="../lib/OFM-Network/src/Network.share.xml">
     <op:verify File="../lib/OFM-Network/library.json" ModuleVersion="2" /> 
   </op:define>
+  -->
+
+  <op:define prefix="WLAN" ModuleType="12" share="../lib/OFM-WLANModule/src/WLAN.share.xml"
+    KoSingleOffset="20">
+    <op:verify File="../lib/OFM-WLANModule/library.json" ModuleVersion="0" />
+  </op:define>
+
+  <op:define prefix="UCT" share="../lib/OFM-ConfigTransfer/src/ConfigTransfer.share.xml"
+    ModuleType="13">
+    <op:verify File="../lib/OFM-ConfigTransfer/library.json" ModuleVersion="0.1" />
+  </op:define>
+
 
   <op:define prefix="BRI" ModuleType="2"
-    share="SmartHomeBridge.share.xml"
-    template="SmartHomeBridge.templ.xml"
-    NumChannels="149" KoOffset="400" />
+    share="../lib/OFM-SmartHomeBridge/src/SmartHomeBridge.share.xml"
+    template="../lib/OFM-SmartHomeBridge/src/SmartHomeBridge.templ.xml"
+    NumChannels="149" KoOffset="400" >
+    <op:verify File="../lib/OFM-SmartHomeBridge/library.json" ModuleVersion="0.0" /> 
+  </op:define>
 
   <!-- The bridge uses more than 100 channels. Do not use ModuleType 20 and 29 --> 
 
