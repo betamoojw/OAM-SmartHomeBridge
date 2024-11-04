@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="../../Organization/knxprod-support/knx_project_20/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <KNX xmlns="http://knx.org/xml/project/20" xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" >
- 
+
   <op:config href="SmartHomeBridge.conf.xml" />
   
   <op:ETS
     OpenKnxId="0xAE"
-    ApplicationNumber="0x29" 
-    ApplicationVersion="29"
-    ReplacesVersions="17 18 19 20 21 22 23 24 25 26 27 28"
+    ApplicationNumber="0x2A" 
+    ApplicationVersion="%ReleaseApplicationVersion%"
+    ReplacesVersions="5 6 7 8"
     ApplicationRevision="0"
     ProductName="Smart Home Bridge"
     BusCurrent="10"
-    BuildSuffix="-Debug"
-    BuildSuffixText=" (Debug)"
-    OrderNumber="MGKnxBRI" />
+    BuildSuffix=""
+    BuildSuffixText=""
+    OrderNumber="MGKnxBRI" />  
 
   <op:define prefix="BASE" ModuleType="10"
     share="../lib/OGM-Common/src/Common.share.xml">

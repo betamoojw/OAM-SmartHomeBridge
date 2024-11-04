@@ -12,6 +12,7 @@
 #endif
 #include "Logic.h"
 #include "SmartHomeBridgeModule.h"
+#include "FunctionBlocksModule.h"
 
 
 #if PROG_LED_PIN2
@@ -100,6 +101,7 @@ void setup()
     openknx.addModule(6, openknxFileTransferModule);
 #endif
     openknx.addModule(7, openknxSmartHomeBridgeModule);
+    openknx.addModule(8, openknxFunctionBlocksModule);
     openknx.setup();
 
     KNX_SERIAL.setRxBufferSize(1024);
