@@ -7,4 +7,4 @@ a6c49a6 v1 lib/OFM-ConfigTransfer https://github.com/OpenKNX/OFM-ConfigTransfer
 d59c88b v1 lib/OFM-OTAUpdateModule https://github.com/mgeramb/OFM-OTAUpdateModule.git
 b5bc61e v1 lib/OFM-SmartHomeBridge https://github.com/OpenKNX/OFM-SmartHomeBridge
 02cf33f v1 lib/OFM-WLANModule https://github.com/mgeramb/OFM-WLANModule.git
-ea9f174 v1dev lib/OGM-Common https://github.com/OpenKNX/OGM-Common
+9245309 v1dev lib/OGM-Common https://github.com/OpenKNX/OGM-Common
