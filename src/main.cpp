@@ -1,19 +1,10 @@
+#include "DNSServer.h"
 #include "OpenKNX.h"
-#ifdef ARDUINO_ARCH_ESP32
-#include "WLANModule.h"
-#include "OTAUpdateModule.h"
-#endif
-#ifdef NET_ModuleVersion
 #include "NetworkModule.h"
-#endif
-#ifdef ARDUINO_ARCH_RP2040
-#include "UsbExchangeModule.h"
 #include "FileTransferModule.h"
-#endif
 #include "Logic.h"
 #include "SmartHomeBridgeModule.h"
 #include "FunctionBlocksModule.h"
-
 
 #if PROG_LED_PIN2
 #ifndef PROG_LED_PIN2_ACTIVE_ON
@@ -61,152 +52,132 @@ void progLedOff()
 
 #endif
 
-OpenKNX::Led::GPIO* led2 = nullptr;
-OpenKNX::Led::GPIO* led3 = nullptr;
+OpenKNX::Led::GPIO *led2 = nullptr;
+OpenKNX::Led::GPIO *led3 = nullptr;
 
 void setup()
-{ 
-   pinMode(PROG_LED_PIN, OUTPUT);
-  digitalWrite(PROG_LED_PIN, true);
+{
+  const uint8_t firmwareRevision = 1;
+#ifdef PROG_LED_PIN2
+  led2 = new OpenKNX::Led::GPIO();
+  led2->init(PROG_LED_PIN2, PROG_LED_PIN2_ACTIVE_ON);
+  led2->pulsing();
+#endif
+#ifdef PROG_LED_PIN3
+  led3 = new OpenKNX::Led::GPIO();
+  led3->init(PROG_LED_PIN3, PROG_LED_PIN2_ACTIVE_ON);
+  led3->pulsing();
+#endif
+  openknx.init(firmwareRevision);
+// GPIO1 is used for serial TX, special handling needed to turn of Serial
+#if (USE_PROG_LED_ON_SERIAL_TX == 1)
+  progLedOff();
+  knx.setProgLedOffCallback(progLedOff);
+  knx.setProgLedOnCallback(progLedOn);
+#endif
+#ifdef WLAN_WifiSSID
+  openknx.addModule(1, openknxWLANModule);
+#endif
+#ifdef NET_ModuleVersion
+  openknx.addModule(1, openknxNetwork);
+#endif
+  openknx.addModule(2, openknxLogic);
 
+#ifdef ARDUINO_ARCH_RP2040
+  openknx.addModule(5, openknxUsbExchangeModule);
+  openknx.addModule(6, openknxFileTransferModule);
+#endif
+  openknx.addModule(7, openknxSmartHomeBridgeModule);
+  openknx.addModule(8, openknxFunctionBlocksModule);
+  openknx.setup();
 
-//     const uint8_t firmwareRevision = 1;
-// #ifdef PROG_LED_PIN2
-//     led2 = new OpenKNX::Led::GPIO();
-//     led2->init(PROG_LED_PIN2, PROG_LED_PIN2_ACTIVE_ON);
-//     led2->pulsing();
-// #endif
-// #ifdef PROG_LED_PIN3
-//     led3 = new OpenKNX::Led::GPIO();
-//     led3->init(PROG_LED_PIN3, PROG_LED_PIN2_ACTIVE_ON);
-//     led3->pulsing();
-// #endif
-//     openknx.init(firmwareRevision);
-// // GPIO1 is used for serial TX, special handling needed to turn of Serial
-// #if (USE_PROG_LED_ON_SERIAL_TX == 1)
-//     progLedOff();
-//     knx.setProgLedOffCallback(progLedOff);
-//     knx.setProgLedOnCallback(progLedOn);
-// #endif
-// #ifdef WLAN_WifiSSID    
-//     openknx.addModule(1, openknxWLANModule);
-// #endif
-// #ifdef NET_ModuleVersion
-//     openknx.addModule(1, openknxNetwork);
-// #endif    
-//     openknx.addModule(2, openknxLogic);
-//  //   openknx.addModule(3, openknxInternetWeatherModule);
-// #ifdef ARDUINO_ARCH_ESP32    
-//     openknx.addModule(4, openknxOTAUpdateModule);
-
-// #endif
-// #ifdef ARDUINO_ARCH_RP2040
-//     openknx.addModule(5, openknxUsbExchangeModule);
-//     openknx.addModule(6, openknxFileTransferModule);
-// #endif
-//     openknx.addModule(7, openknxSmartHomeBridgeModule);
-//     openknx.addModule(8, openknxFunctionBlocksModule);
-//     openknx.setup();
-
-//     KNX_SERIAL.setRxBufferSize(1024);
-//     openknx.setup();
-// #ifdef PROG_BUTTON_PIN2
-//     if (PROG_BUTTON_PIN2_INTERRUPT_ON == FALLING)
-//       pinMode(PROG_BUTTON_PIN2, INPUT_PULLUP);
-//     else
-//       pinMode(PROG_BUTTON_PIN2, INPUT_PULLDOWN);
-// #endif
-// #ifdef PROG_BUTTON_PIN3
-//     if (PROG_BUTTON_PIN3_INTERRUPT_ON == FALLING)
-//       pinMode(PROG_BUTTON_PIN3, INPUT_PULLUP);
-//     else
-//       pinMode(PROG_BUTTON_PIN3, INPUT_PULLDOWN);
-// #endif
-
+  KNX_SERIAL.setRxBufferSize(1024);
+  openknx.setup();
+#ifdef PROG_BUTTON_PIN2
+  if (PROG_BUTTON_PIN2_INTERRUPT_ON == FALLING)
+    pinMode(PROG_BUTTON_PIN2, INPUT_PULLUP);
+  else
+    pinMode(PROG_BUTTON_PIN2, INPUT_PULLDOWN);
+#endif
+#ifdef PROG_BUTTON_PIN3
+  if (PROG_BUTTON_PIN3_INTERRUPT_ON == FALLING)
+    pinMode(PROG_BUTTON_PIN3, INPUT_PULLUP);
+  else
+    pinMode(PROG_BUTTON_PIN3, INPUT_PULLDOWN);
+#endif
 }
 bool lastButton2Pressed = false;
 bool lastButton3Pressed = false;
 bool lastProgMode = false;
 bool lastWifiConntected = false;
 
-
-unsigned long lastTime = 0;
-
 void loop()
 {
-  if (millis() - lastTime > 1000)
-  {
 
-    lastTime = millis();
-    lastProgMode = !lastProgMode;
-    digitalWrite(PROG_LED_PIN, lastProgMode);
-    //Serial.println("Loop");
+#ifdef PROG_BUTTON_PIN2
+  bool button2Pressed = digitalRead(PROG_BUTTON_PIN2);
+  if (PROG_BUTTON_PIN2_INTERRUPT_ON == FALLING)
+    button2Pressed = !button2Pressed;
+  if (button2Pressed != lastButton2Pressed)
+  {
+    lastButton2Pressed = button2Pressed;
+    if (button2Pressed)
+      knx.toggleProgMode();
+  }
+#endif
+#ifdef PROG_BUTTON_PIN3
+  bool button3Pressed = digitalRead(PROG_BUTTON_PIN3);
+  if (PROG_BUTTON_PIN3_INTERRUPT_ON == FALLING)
+    button3Pressed = !button3Pressed;
+  if (button3Pressed != lastButton3Pressed)
+  {
+    lastButton3Pressed = button3Pressed;
+    if (button3Pressed)
+      knx.toggleProgMode();
+  }
+#endif
+  bool wifiConntected = WiFi.status() == WL_CONNECTED;
+  if (lastProgMode != knx.progMode() || lastWifiConntected != wifiConntected)
+  {
+    lastWifiConntected = wifiConntected;
+    lastProgMode = knx.progMode();
+    if (lastProgMode)
+    {
+      if (led2 != nullptr)
+        led2->on();
+      if (led3 != nullptr)
+        led3->on();
+    }
+    else if (lastWifiConntected)
+    {
+      if (led2 != nullptr)
+        led2->off();
+      if (led3 != nullptr)
+        led3->off();
+    }
+    else
+    {
+      if (led2 != nullptr)
+        led2->pulsing();
+      if (led3 != nullptr)
+        led3->pulsing();
+    }
   }
 
-// #ifdef PROG_BUTTON_PIN2
-//   bool button2Pressed = digitalRead(PROG_BUTTON_PIN2);
-//   if (PROG_BUTTON_PIN2_INTERRUPT_ON == FALLING)
-//     button2Pressed =! button2Pressed;
-//   if (button2Pressed != lastButton2Pressed)
-//   {
-//     lastButton2Pressed = button2Pressed;
-//     if (button2Pressed)
-//       knx.toggleProgMode();
-//   }
-// #endif
-// #ifdef PROG_BUTTON_PIN3
-//   bool button3Pressed = digitalRead(PROG_BUTTON_PIN3);
-//   if (PROG_BUTTON_PIN3_INTERRUPT_ON == FALLING)
-//     button3Pressed =! button3Pressed;
-//   if (button3Pressed != lastButton3Pressed)
-//   {
-//     lastButton3Pressed = button3Pressed;
-//     if (button3Pressed)
-//       knx.toggleProgMode();
-//   }
-// #endif
-//   bool wifiConntected = WiFi.status() == WL_CONNECTED;
-//   if (lastProgMode != knx.progMode() || lastWifiConntected != wifiConntected)
-//   {
-//     lastWifiConntected = wifiConntected;
-//     lastProgMode = knx.progMode();
-//     if (lastProgMode)
-//     {
-//       if (led2 != nullptr)
-//         led2->on();
-//       if (led3 != nullptr)
-//         led3->on();
-//     }
-//     else if (lastWifiConntected)
-//     {
-//       if (led2 != nullptr)
-//         led2->off();
-//       if (led3 != nullptr)
-//         led3->off();
-//     }
-//     else
-//     {
-//       if (led2 != nullptr)
-//         led2->pulsing();
-//       if (led3 != nullptr)
-//         led3->pulsing();      
-//     }
-//   }
-
-//   if (led2 != nullptr)
-//     led2->loop();
-//   if (led3 != nullptr)
-//     led3->loop();
- // openknx.loop(); 
+  if (led2 != nullptr)
+    led2->loop();
+  if (led3 != nullptr)
+    led3->loop();
+  openknx.loop();
 }
 
 #ifdef OPENKNX_DUALCORE
 void setup1()
 {
-  openknx.setup1(); 
+  openknx.setup1();
 }
 void loop1()
 {
-  openknx.loop1(); 
+  openknx.loop1();
 }
 #endif

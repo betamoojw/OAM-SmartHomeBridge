@@ -1,4 +1,6 @@
+#pragma once
 
+#include "HardwareConfig.h"
 
 #ifdef BOARD_REG1_ETH
 
