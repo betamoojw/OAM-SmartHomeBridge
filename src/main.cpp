@@ -57,6 +57,10 @@ OpenKNX::Led::GPIO *led3 = nullptr;
 
 void setup()
 {
+  Serial.printf("PROG_LED_PIN: %d\n", PROG_LED_PIN);
+
+Serial.printf("PROG_LED_PIN_ACTIVE_ON: %d\n", PROG_LED_PIN_ACTIVE_ON);
+
   const uint8_t firmwareRevision = 1;
 #ifdef PROG_LED_PIN2
   led2 = new OpenKNX::Led::GPIO();
@@ -169,6 +173,7 @@ void loop()
   if (led3 != nullptr)
     led3->loop();
   openknx.loop();
+  openknx.progLed.loop();
 }
 
 #ifdef OPENKNX_DUALCORE
