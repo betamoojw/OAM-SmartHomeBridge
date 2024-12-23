@@ -173,7 +173,6 @@ void loop()
   if (led3 != nullptr)
     led3->loop();
   openknx.loop();
-  openknx.progLed.loop();
 }
 
 #ifdef OPENKNX_DUALCORE
